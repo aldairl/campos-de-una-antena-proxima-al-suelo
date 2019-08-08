@@ -52,12 +52,14 @@ def compx(fm=0.5, dk= 5):
 	f = fm
 	d = dk
 
-	x = (18*10**3)*sig/f
+	x = (18*10**3*sig)/f
 
-	y = math.atan((h1+h2)/(d*1000))
+	y = math.atan((h1 + h2)/(d*1000))
 
-	r =complex( Er*(math.sin(y)), -(x*(math.sin(y)))) 
-	comp = complex(Er - (math.cos(y)**2), -x)
+	#r =complex( Er*(math.sin(y)), -(x*(math.sin(y)))) 
+	r = (complex(Er, -x)*math.sin(y))
+	#comp = complex(Er - (math.cos(y)**2), -x)
+	comp = (complex(Er, -x) - (math.cos(y)**2))
 
 	return r, comp
 
@@ -91,10 +93,12 @@ def calcl_Rh(fm=0.5, dk= 5):
 #--------------------calculos de ejercicio------------------
 
 def calcular_Espv(fm=0.5, dk=5):
+	f = fm
+	d = dk
 
-	landa = (f*10**6)
+	landa = c / (f*10**6)
 
-	Rv = calcl_RV()
+	Rv = calcl_RV(f, d)
 
 	Rvpol = cmath.polar(Rv) 
 
@@ -106,7 +110,7 @@ def calcular_Espv(fm=0.5, dk=5):
 	R2 = math.sqrt((d*1000)**2 + (h1 + h2)**2)
 	R2_R1 = (R2 - R1)
 
-	angR = (360/(c/landa))*R2_R1
+	angR = (360/landa)*R2_R1
 
 	new_ang = ang - angR
 
@@ -131,17 +135,18 @@ def calcular_Esuv(fm=0.5, dk=5):
 
 	f = fm
 	d = dk
-	x = (18*10**3)*sig/f
+	x = (18*10**3*sig)/f
 
-	landa = (f*10**6)
+	landa =c/(f*10**6)
+
 	Rv = calcl_RV(f, d)
 
-	R = d*1000
+	R = d
 	b = math.atan((Er+1)/x)
-	p = (pi*R*math.cos(b))/(landa*x)
+	p = ((pi*R)/(landa*x))*math.cos(b)
 
-	Esuv = (60*(cmath.polar((1 - Rv))[0]))/(d*1000*2*p)
-	print(Esuv)
+	Esuv = (60/d*1000)*((cmath.polar(1 - Rv)[0])/(2*p))
+	
 	return Esuv
 
 #---------------espacial Horizontal--------------
@@ -162,17 +167,15 @@ def calcular_Esph(fm=0.5, dk=5):
 	Rhpol = cmath.polar(Rh)
 
 	##Corregir angulo
-	e_jb = complex(math.cos(B*R2_R1), -math.sin(B*R2_R1))
-	e_jb_pol = cmath.polar(e_jb)
+	
+	ang_h = correct_angle(Rh, Rhpol)
 
-	ang_h = correct_angle(e_jb, e_jb_pol)
-
-	angh = math.radians(correct_angle(Rh, Rhpol) - ang_h)
+	angh = math.radians(ang_h - ((360/landa)*R2_R1))
 	
 	complejoh = complex((Rhpol[0]*math.cos(angh)), Rhpol[0]*math.sin(angh))
 
-
-	Esph = (60/(d*1000)*math.sqrt(((1 + complejoh.real)**2) + ((complejoh.imag)**2)))
+	
+	Esph = (60/(d*1000))*math.sqrt((((1 + complejoh.real)**2) + ((complejoh.imag)**2)))
 
 	return Esph
 
@@ -287,8 +290,132 @@ def presentarCalculos(Eev,Esv,Eeh,Esh,CRefH,CRefV,Aten,dist):
     tab2 = tabulate(tab2Distancia1,  tablefmt='simple',stralign='left')
     Ajust={'data1':[tab1], 'date2':[tab2],}
     #print(type(tab1))
-    print(tabulate(Ajust, tablefmt='fancy_grid',stralign='left',floatfmt='.4f'))    
+    print(tabulate(Ajust, tablefmt='fancy_grid',stralign='left',floatfmt='.4f'))
 
+#Calculos intermedios
+
+
+
+def CalculosIntermedios(jfa=1, jda=5, landaa= 300, da =5 , R1a=1.000001, R2a=1.000002, h1a=30.4878, h2a=9.146341, Xia=0.001891795, f=0.5, era=15 , sigmaa =5*10**-3, xa= 90, Aa =0.9231):
+    
+    jf=jfa
+    jd=jda
+    d=da
+    R1=R1a
+    R2= R2a
+    h1=h1a
+    h2=h2a
+    R12=R1-R2
+    Xi= Xia
+    frec= f
+    Er = era
+    sigma = sigmaa
+    x= xa
+    landa = landaa
+    A = Aa
+    #Aqui van los otros valores Aldaircho 
+    
+    
+    tabCalculosIntermedios= {'TypeWave2': [
+                'jf , jd         =  ', 
+                'Long. de Onda   =   ', 
+                'd               = ', 
+                'R1, R2          =',
+                'h1 , h2         =',
+                'R1-R2           =',
+                'Xi              =',
+                'frec.           =',
+                'er,sigma, x     =',
+                'Rhm, rhag, rhar =',
+                'Rvm, rvag, rvar =',
+                'pv , ph         =',
+                'bv , bpv, bsv  =',
+                'bh , bph, bsh   =',
+                'A               =',
+                'pa              =',           
+                                       ],
+
+                        'Value2':[
+                         str('%.3E'% Decimal(jf)),
+                         str('%.3E'% Decimal(landa)),
+                            
+                         str('%.3E'% Decimal(d)),
+                         str('%.3E'% Decimal(R1)),
+                            
+                         str('%.3E'% Decimal(h1)),
+                         str('%.3E'% Decimal(R12)),
+                            
+                         str('%.3E'% Decimal(Xi)),
+                         str('%.3E'% Decimal(frec)),
+                            
+                         str('%.3E'% Decimal(Er)),
+                         str('%.3E'% Decimal(0)),
+                            
+                         str('%.3E'% Decimal(0)),
+                         str('%.3E'% Decimal(0)),
+                            
+                         str('%.3E'% Decimal(0)),
+                         str('%.3E'% Decimal(0)),
+                         str('%.3E'% Decimal(A)),
+                         str('%.3E'% Decimal(0)),
+                           ],
+                        'Value3':
+                         [
+                         str('%.3E' % Decimal(jd) ),
+                         str('%.3E'% Decimal(0)),
+                         
+                         str('%.3E'% Decimal(0)),
+                         str('%.3E'% Decimal(R2)),
+                             
+                         str('%.3E'% Decimal(h2)),     
+                         str('%.3E'% Decimal(0)),
+                             
+                         str('%.3E'% Decimal(0)),
+                         str('%.3E'% Decimal(0)),
+                             
+                         str('%.3E'% Decimal(sigma)),
+                         str('%.3E'% Decimal(0)),
+                             
+                         str('%.3E'% Decimal(0)),
+                         str('%.3E'% Decimal(0)),
+                             
+                         str('%.3E'% Decimal(0)),
+                         str('%.3E'% Decimal(0)),
+                         str('%.3E'% Decimal(0)),
+                         str('%.3E'% Decimal(0)),
+                          
+                        
+                           ], 
+                         
+                         'Value4':[
+                         str('%.3E' % Decimal(0) ),
+                         str('%.3E'% Decimal(0)),
+                             
+                         str('%.3E'% Decimal(0)),
+                         str('%.3E'% Decimal(0)),
+                             
+                         str('%.3E'% Decimal(0)),
+                         str('%.3E'% Decimal(0)),
+                             
+                         str('%.3E'% Decimal(0)),
+                         str('%.3E'% Decimal(0)),
+                             
+                         str('%.3E'% Decimal(x)),    
+                         str('%.3E'% Decimal(0)),
+                         
+                        str('%.3E'% Decimal(0)), 
+                        str('%.3E'% Decimal(0)),   
+                             
+                        str('%.3E'% Decimal(0)),
+                        str('%.3E'% Decimal(0)),
+                        str('%.3E'% Decimal(0)), 
+                        str('%.3E'% Decimal(0)),
+
+                                   
+                           ], 
+                        }
+    saveTabCalculosIntermedios = tabulate(tabCalculosIntermedios,  tablefmt='simple', stralign='left',floatfmt='.4f')
+    print(saveTabCalculosIntermedios)
 
 #_-------------presentacion---------------
 
@@ -318,7 +445,7 @@ if __name__ == "__main__":
 
 print(tabulate(presentacion, headers = 'keys', tablefmt='fancy_grid',stralign='center'))
 
-validation = input("Precione c para visualizar ejemplo de prueba 1")
+validation = input("Precione c para visualizar ejemplo de prueba ")
 
 if (validation):
 
@@ -329,7 +456,12 @@ if (validation):
 
 	os.system ("clear")    
 
-	for i in range(0,4):
+	Resultados_campos = []
+
+	#variacion Frecuencia
+	Var_Fre = 2
+	var_dis = 2
+	for i in range(0, Var_Fre):
 
 		encabezado = {'Univ. del Cauca': [],
                 'Fac. Ing. Electrónica': [],
@@ -339,7 +471,7 @@ if (validation):
 		print(tabulate(encabezado, headers='keys'))
 
 
-		for j in range(0,4):
+		for j in range(0, var_dis):
 
 			Espv = calcular_Espv(f, d)
 			Esuv = calcular_Esuv(f, d)
@@ -351,14 +483,30 @@ if (validation):
 
 			presentarCalculos(Espv, Esuv, Esph, Esuh, Rh.real, Rv.real,0.9936, d)
 
+			Resultados_campos.append([[d], [Espv], [Esuv], [Esph], [Esuh]])
+
 			d += 5
 
 		f += 0.5
-		d = 5
+		
 
 		instruction = None
+		instruction2 = None
 
 		while  not instruction:
-			instruction = input('Precione c para continuar')
+			instruction = input('Precione c para continuar ')
 
 		os.system('clear')
+
+		print('----------calculos intermedios-----------')
+		CalculosIntermedios(da=d-5)
+
+		while  not instruction2:
+			instruction2 = input('Precione c para continuar ')
+
+		os.system('clear')
+		d = 5
+
+	#for x in Resultados_campos:
+		
+	print(tabulate({'distancia': Resultados_campos}, headers = 'keys'))

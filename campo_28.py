@@ -88,7 +88,7 @@ b = math.atan((Er+1)/x)
 
 #--------sperficial Vertical----------
 
-R = d*1609
+R = d
 p = (pi*R*math.cos(b))/(landa*x)
 
 Esuv = (60/(d*1609*2*p))*(cmath.polar((1 - Rv))[0])
