@@ -196,11 +196,11 @@ def presentarCalculos(Eev,Esv,Eeh,Esh,CRefH,CRefV,Aten,dist):
                          str('%.3E'% Decimal(Aten)),
                          str('%.3E'% Decimal(dist)),     
                            ], }
-    tab1 = tabulate(tab1Distancia1,  tablefmt='simple',stralign='left')
-    tab2 = tabulate(tab2Distancia1,  tablefmt='simple',stralign='left')
+    tab1 = tabulate(tab1Distancia1,  tablefmt='simple',stralign='left',floatfmt='.4f')
+    tab2 = tabulate(tab2Distancia1,  tablefmt='simple',stralign='left',floatfmt='.4f')
     Ajust={'data1':[tab1], 'date2':[tab2],}
     #print(type(tab1))
-    print(tabulate(Ajust, tablefmt='fancy_grid',stralign='left'))    
+    print(tabulate(Ajust, tablefmt='fancy_grid',stralign='left',floatfmt='.4f'))    
 
 
 #_-------------presentacion---------------
@@ -253,7 +253,7 @@ if (validation):
     
 
     for i in range(0,4):
-        
+        print(d)
         print(tabulate(encabezado, headers='keys'))
         for i in range(0,4):
             #Aqui hay que poner a ejecutar una funcion de todos los calculos 
@@ -262,9 +262,7 @@ if (validation):
             #asi se puede poner una tabla dentro de otra tabla, con un pequeño ajuste
             presentarCalculos(Espv, Esuv, Esph, Esuh, Rh.real, Rv.real,0.9936, d)
 
-            d += 0.5
-            f += 0.5
-
+        d += 0.5
         instruction = None
 
         while  not instruction:
