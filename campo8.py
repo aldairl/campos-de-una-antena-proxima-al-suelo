@@ -23,7 +23,7 @@ d = 5 #km
 h1 = 30.4878 #m
 h2 = 9.146341 #m
 
-x = 18*10**3*sig/f
+x = (18*10**3)*sig/f
 
 y = math.atan((h1+h2)/(d*1000))
 
@@ -46,78 +46,165 @@ def correct_angle(Rvh, Rvhpol):
     else:
         return Rvhpol[1]
 
+
+def compx(fm=0.5, dk= 5):
+
+	f = fm
+	d = dk
+
+	x = (18*10**3)*sig/f
+
+	y = math.atan((h1+h2)/(d*1000))
+
+	r =complex( Er*(math.sin(y)), -(x*(math.sin(y)))) 
+	comp = complex(Er - (math.cos(y)**2), -x)
+
+	return r, comp
+
+def calcl_RV(fm=0.5, dk= 5):
+	f = fm
+	d = dk
+
+	r, comp = compx(f, d)
+
+	Rv1 = ((r) - (cmath.sqrt(comp)))
+	Rv2 = ((r) + (cmath.sqrt(comp)))
+	Rv = (Rv1/Rv2)
+
+	return Rv
+
+def calcl_Rh(fm=0.5, dk= 5):
+	f = fm
+	d = dk
+
+	y = math.atan((h1+h2)/(d*1000))
+
+	r, comp= compx(f, d)
+	Rh1 = (math.sin(y) - (cmath.sqrt(comp)))
+	Rh2 = (math.sin(y) + (cmath.sqrt(comp)))
+	Rh = Rh1/Rh2
+
+	return Rh
+
+
+
 #--------------------calculos de ejercicio------------------
 
-r =complex( Er*(math.sin(y)), -(x*(math.sin(y)))) 
-comp = complex(Er - (math.cos(y)**2), -x)
+def calcular_Espv(fm=0.5, dk=5):
 
-Rv1 = ((r) - (cmath.sqrt(comp)))
-Rv2 = ((r) + (cmath.sqrt(comp)))
-Rv = (Rv1/Rv2)
+	landa = (f*10**6)
 
-Rvpol = cmath.polar(Rv) 
+	Rv = calcl_RV()
 
-ang = correct_angle(Rv, Rvpol)
+	Rvpol = cmath.polar(Rv) 
 
-rad = Rvpol[0]
+	ang = correct_angle(Rv, Rvpol)
 
-R1 = math.sqrt((d*1000)**2 + (h1 - h2)**2)
-R2 = math.sqrt((d*1000)**2 + (h1 + h2)**2)
-R2_R1 = (R2 - R1)
+	rad = Rvpol[0]
 
-angR = (360/landa)*R2_R1
+	R1 = math.sqrt((d*1000)**2 + (h1 - h2)**2)
+	R2 = math.sqrt((d*1000)**2 + (h1 + h2)**2)
+	R2_R1 = (R2 - R1)
 
-new_ang = ang - angR
+	angR = (360/(c/landa))*R2_R1
 
-new_ang = math.radians(new_ang)
+	new_ang = ang - angR
+
+	new_ang = math.radians(new_ang)
 
 
-complejo = complex((Rvpol[0]*math.cos(new_ang)), Rvpol[0]*math.sin(new_ang))
+	complejo = complex((Rvpol[0]*math.cos(new_ang)), Rvpol[0]*math.sin(new_ang))
 
-#-------Espacial Vertical-----------
+	#-------Espacial Vertical-----------
 
-Espv = (60/(d*1609))*math.sqrt(((1 + complejo.real)**2) + ((complejo.imag)**2))
+	Espv = (60/(d*1000))*math.sqrt(((1 + complejo.real)**2) + ((complejo.imag)**2))
+
+	return Espv
 
 
 #fase constante
-b = math.atan((Er+1)/x)
-
 # P distancia numerica
-
 #R distancia desde el dipolo hasta el punto donde el campo esta siendo considerado R>>landa
-
 #--------sperficial Vertical----------
 
-R = d*1609
-p = (pi*R*math.cos(b))/(landa*x)
+def calcular_Esuv(fm=0.5, dk=5):
 
-Esuv = (60/(d*1609*2*p))*(cmath.polar((1 - Rv))[0])
+	f = fm
+	d = dk
+	x = (18*10**3)*sig/f
+
+	landa = (f*10**6)
+	Rv = calcl_RV(f, d)
+
+	R = d*1000
+	b = math.atan((Er+1)/x)
+	p = (pi*R*math.cos(b))/(landa*x)
+
+	Esuv = (60*(cmath.polar((1 - Rv))[0]))/(d*1000*2*p)
+	print(Esuv)
+	return Esuv
 
 #---------------espacial Horizontal--------------
 
-Rh1 = (math.sin(y) - (cmath.sqrt(comp)))
-Rh2 = (math.sin(y) + (cmath.sqrt(comp)))
+def calcular_Esph(fm=0.5, dk=5):
 
-Rh = Rh1/Rh2
+	f = fm
+	d= dk
+	landa = c/(f*10**6)
+	B = (2*pi)/landa
 
-Rhpol = cmath.polar(Rh)
+	R1 = math.sqrt((d*1000)**2 + (h1 - h2)**2)
+	R2 = math.sqrt((d*1000)**2 + (h1 + h2)**2)
+	R2_R1 = (R2 - R1)
 
-angh = math.radians(correct_angle(Rh, Rhpol) - (B*R2_R1*180/pi))
+	Rh = calcl_Rh(f, d)
 
-complejoh = complex((Rhpol[0]*math.cos(angh)), Rhpol[0]*math.sin(angh))
+	Rhpol = cmath.polar(Rh)
+
+	##Corregir angulo
+	e_jb = complex(math.cos(B*R2_R1), -math.sin(B*R2_R1))
+	e_jb_pol = cmath.polar(e_jb)
+
+	ang_h = correct_angle(e_jb, e_jb_pol)
+
+	angh = math.radians(correct_angle(Rh, Rhpol) - ang_h)
+	
+	complejoh = complex((Rhpol[0]*math.cos(angh)), Rhpol[0]*math.sin(angh))
 
 
-Esph = (60/(d*1609))*math.sqrt(((1 + complejoh.real)**2) + ((complejoh.imag)**2))
+	Esph = (60/(d*1000)*math.sqrt(((1 + complejoh.real)**2) + ((complejoh.imag)**2)))
+
+	return Esph
 
 #-------campo superficial Horizontal
 
-bh = math.atan((Er-1)/x)
-ph = (pi*R*x)/(landa*math.cos(bh))
+def calcular_Esuh(fm=0.5, dk=5):
 
-Esuh = (60/(d*1609*2*ph))*(cmath.polar((1 - Rh))[0])
+	f = fm
+	d = dk
+	x = (18*10**3)*sig/f
+
+	landa = c/(f*10**6)
+
+	Rh = calcl_Rh(f, d)
+
+	R = d
+	bh = math.atan((Er-1)/x)
+
+	ph = (pi*R*x)/(landa*math.cos(bh))
+
+	Esuh = (60/(d*1000*2*ph))*(cmath.polar((1 - Rh))[0])
+
+	return Esuh
 
 
 #--------------------------------Datos Generales Aplicaciòn-----------------------------------
+Rvn = calcl_RV()
+angn = correct_angle(Rvn, cmath.polar(Rvn))
+
+Rhn = calcl_Rh()
+angnh = correct_angle(Rvn, cmath.polar(Rhn))
+
 
 Directividad= 2.150 
 Cte = '%.3E'% Decimal(1e00)
@@ -130,10 +217,10 @@ Epsilon=  '%.3E'% Decimal(Er)
 Sigma= '%.3E'% Decimal(sig)
 Ang_aproxRad='%.3E'% Decimal(0.007927)
 Ang_aproxgrd= '%.3E'% Decimal(0.4542)
-coef_ReflexRv= '%.3E'% Decimal(abs(Rv.real))
-angRv= '%.3E'% Decimal(ang)
-coef_ReflexRh= '%.3E'% Decimal(abs(Rh.real))
-angRh='%.3E'% Decimal(correct_angle(Rh, Rhpol))
+coef_ReflexRv= '%.3E'% Decimal(abs(Rvn.real))
+angRv= '%.3E'% Decimal(angn)
+coef_ReflexRh= '%.3E'% Decimal(abs(Rhn.real))
+angRh='%.3E'% Decimal(angnh)
 #-----------------------------------------Final Datos Generales ----------------------------
 
 #-------------------------------------definiendo funciones y Métodos---------------------------------------------------------------
@@ -170,14 +257,14 @@ def presentarCalculos(Eev,Esv,Eeh,Esh,CRefH,CRefV,Aten,dist):
     
     #Aqui va la presentacion de calculos obtenidos atraves de la fuciòn que hay que crear 
     tab1Distancia1={'TypeWave': [
-                 'E espacial Vertical  ', 
-                 'E Superficial Vertical', 
-                 'E espacial Horizontal  ', 
-                 'E Superficial Horizontal', 
+                 'E espacial Vertical      = ', 
+                 'E Superficial Vertical   = ', 
+                 'E espacial Horizontal    = ', 
+                 'E Superficial Horizontal = ', 
                  
                            ],
 
-                 'Value':[str('%.3E' % Decimal(Eev) ),
+                 'Value':[str('%.3E' % Decimal(Eev)),
                          str('%.3E'% Decimal(Esv)),
                          str('%.3E'% Decimal(Eeh)),
                          str('%.3E'% Decimal(Esh)),     
@@ -200,7 +287,7 @@ def presentarCalculos(Eev,Esv,Eeh,Esh,CRefH,CRefV,Aten,dist):
     tab2 = tabulate(tab2Distancia1,  tablefmt='simple',stralign='left')
     Ajust={'data1':[tab1], 'date2':[tab2],}
     #print(type(tab1))
-    print(tabulate(Ajust, tablefmt='fancy_grid',stralign='left'))    
+    print(tabulate(Ajust, tablefmt='fancy_grid',stralign='left',floatfmt='.4f'))    
 
 
 #_-------------presentacion---------------
@@ -223,51 +310,55 @@ presentacion = {'Univ. del Cauca': ['Onda Celeste',
 
                          }
 
-encabezado = {'Univ. del Cauca': [],
-                'Fac. Ing. Electrónica': [],
-                'Frec. = {} MHz'.format(f):[]
-                         }
-
 if __name__ == "__main__":
 
     os.system ("clear")
 
     print("            CAMPOS DE UNA ANTENA PROXIMA AL SUELO ")   
 
-    print(tabulate(presentacion, headers = 'keys', tablefmt='fancy_grid',stralign='center'))
+print(tabulate(presentacion, headers = 'keys', tablefmt='fancy_grid',stralign='center'))
 
-print("Precione c para visualizar ejemplo de prueba 1")
+validation = input("Precione c para visualizar ejemplo de prueba 1")
 
-validation=input()
 if (validation):
 
-    os.system ("clear")
-    mostrarDatosGenerales(Directividad,Cte,Potencia,Frec,Distancia,h1,h2,Epsilon,Sigma,Ang_aproxRad,Ang_aproxgrd,coef_ReflexRv,angRv,coef_ReflexRh,angRh) 
-    print("Digite c para continuar")
+	os.system ("clear")
+	mostrarDatosGenerales(Directividad,Cte,Potencia,Frec,Distancia,h1,h2,Epsilon,Sigma,Ang_aproxRad,Ang_aproxgrd,coef_ReflexRv,angRv,coef_ReflexRh,angRh)
 
-    evaluation1=input()
-    print("validacion correcta")
-    
-    os.system ("clear")
+	val1 = input("Digite c para continuar")
 
-    
+	os.system ("clear")    
 
-    for i in range(0,4):
-        
-        print(tabulate(encabezado, headers='keys'))
-        for i in range(0,4):
-            #Aqui hay que poner a ejecutar una funcion de todos los calculos 
-            #donde varaia la Distancia cuatro veces con la misma frecuencia. Para 
-            #Cada iteracion se le pasa los nuevos datos a la funciòn presentarCalculos()
-            #asi se puede poner una tabla dentro de otra tabla, con un pequeño ajuste
-            presentarCalculos(Espv, Esuv, Esph, Esuh, Rh.real, Rv.real,0.9936, d)
+	for i in range(0,4):
 
-            d += 0.5
-            f += 0.5
+		encabezado = {'Univ. del Cauca': [],
+                'Fac. Ing. Electrónica': [],
+                'Frec. = {} MHz'.format(f):[]
+                         }
 
-        instruction = None
+		print(tabulate(encabezado, headers='keys'))
 
-        while  not instruction:
-            instruction = input('Precione c para continuar')
 
-        os.system ("clear")
+		for j in range(0,4):
+
+			Espv = calcular_Espv(f, d)
+			Esuv = calcular_Esuv(f, d)
+			Esph = calcular_Esph(f, d)
+			Esuh = calcular_Esuh(f, d)
+
+			Rh = calcl_Rh(f, d)
+			Rv = calcl_RV(f, d)
+
+			presentarCalculos(Espv, Esuv, Esph, Esuh, Rh.real, Rv.real,0.9936, d)
+
+			d += 5
+
+		f += 0.5
+		d = 5
+
+		instruction = None
+
+		while  not instruction:
+			instruction = input('Precione c para continuar')
+
+		os.system('clear')
